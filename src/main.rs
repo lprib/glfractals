@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use glium::{
-    glutin::{self, dpi::PhysicalPosition},
+    glutin::{self, dpi::{PhysicalPosition, PhysicalSize}},
     implement_vertex, uniform, Display, Surface,
 };
 
@@ -14,7 +14,7 @@ implement_vertex!(Vertex, position);
 
 fn main() {
     let mut event_loop = glutin::event_loop::EventLoop::new();
-    let window_builder = glutin::window::WindowBuilder::new();
+    let window_builder = glutin::window::WindowBuilder::new().with_inner_size(PhysicalSize::new(500, 300));
     let context_builder = glutin::ContextBuilder::new();
     let display = glium::Display::new(window_builder, context_builder, &event_loop).unwrap();
 
@@ -53,7 +53,7 @@ fn main() {
             });
 
     let mut mouse = [0f32, 0f32];
-    let mut camAngle = 0.0f32;
+    let mut mousePos = [0.0f32, 0.0f32];
 
     event_loop.run(move |event, _, control_flow| {
         let (x, y) = display.get_framebuffer_dimensions();
@@ -66,7 +66,7 @@ fn main() {
                 &vertex_buffer,
                 &indices,
                 &program,
-                &uniform! {resolution: [x, y], camAngle: camAngle},
+                &uniform! {resolution: [x, y], mousePos: mousePos},
                 &Default::default(),
             )
             .unwrap();
@@ -91,7 +91,8 @@ fn main() {
                     position: PhysicalPosition { x: mx, y: my },
                     ..
                 } => {
-                    camAngle = mx as f32 / x * 20.0;
+                    mousePos[0] = mx as f32 / x;
+                    mousePos[1] = my as f32 / y;
                     // println!("{}", mx);
                 }
                 _ => return,
