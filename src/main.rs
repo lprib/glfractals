@@ -15,7 +15,7 @@ implement_vertex!(Vertex, position);
 fn main() {
     let mut event_loop = glutin::event_loop::EventLoop::new();
     let window_builder = glutin::window::WindowBuilder::new();
-    let context_builder = glutin::ContextBuilder::new().with_vsync(true);
+    let context_builder = glutin::ContextBuilder::new();
     let display = glium::Display::new(window_builder, context_builder, &event_loop).unwrap();
 
     let shape = vec![
@@ -56,10 +56,11 @@ fn main() {
     let mut camAngle = 0.0f32;
 
     event_loop.run(move |event, _, control_flow| {
-        let mut target = display.draw();
-        target.clear_color(0.0, 0.0, 1.0, 1.0);
         let (x, y) = display.get_framebuffer_dimensions();
         let (x, y) = (x as f32, y as f32);
+
+        let mut target = display.draw();
+        target.clear_color(0.0, 0.0, 1.0, 1.0);
         target
             .draw(
                 &vertex_buffer,
@@ -73,9 +74,10 @@ fn main() {
         target.finish().unwrap();
 
         // let next_frame_time =
-        //     std::time::Instant::now() + std::time::Duration::from_nanos(50_000_000);
+        //     std::time::Instant::now() + std::time::Duration::from_nanos(16_000_000);
         // *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_time);
 
+        // println!("f");
         match event {
             glutin::event::Event::WindowEvent {
                 event: window_event,
@@ -89,7 +91,8 @@ fn main() {
                     position: PhysicalPosition { x: mx, y: my },
                     ..
                 } => {
-                    camAngle = mx as f32 / x * 8.0;
+                    camAngle = mx as f32 / x * 20.0;
+                    // println!("{}", mx);
                 }
                 _ => return,
             },

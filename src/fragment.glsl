@@ -4,10 +4,12 @@ uniform vec2 resolution;
 uniform float camAngle;
 out vec4 color;
 
-const float NORM_EPSILON = 0.001;
-const int TRACE_MAX_ITERS = 20;
+const float NORM_EPSILON = 0.000001;
+const int TRACE_MAX_ITERS = 50;
 // distance to the scene where a ray will be considered a hit
-const float TRACE_HIT_DIST = 0.01;
+const float TRACE_HIT_DIST = 0.001;
+
+// void main() { color = vec4(camAngle / 8.0, 0.0, 0.0, 1.0); }
 
 float mandelbulb(vec3 pos);
 
@@ -42,20 +44,26 @@ float distToScene(vec3 p) {
   // return length(p - vec3(0.0, 0.0, 0.0)) - 0.3;
   // return smoothMin(
   //     p.z,
-  //     smoothMin(p.x, smoothMin(p.y, length(p - vec3(0.3, 0.2, 0.6)) - 0.3)));
+  //     smoothMin(p.x, smoothMin(p.y, length(p - vec3(0.3, 0.2, 0.6)) -
+  //   0.3)));
 }
 
 vec3 estimateNormal(vec3 p) {
-  float xPl = distToScene(vec3(p.x + NORM_EPSILON, p.y, p.z));
-  float xMi = distToScene(vec3(p.x - NORM_EPSILON, p.y, p.z));
-  float yPl = distToScene(vec3(p.x, p.y + NORM_EPSILON, p.z));
-  float yMi = distToScene(vec3(p.x, p.y - NORM_EPSILON, p.z));
-  float zPl = distToScene(vec3(p.x, p.y, p.z + NORM_EPSILON));
-  float zMi = distToScene(vec3(p.x, p.y, p.z - NORM_EPSILON));
-  float xDiff = xPl - xMi;
-  float yDiff = yPl - yMi;
-  float zDiff = zPl - zMi;
-  return normalize(vec3(xDiff, yDiff, zDiff));
+  //   float xPl = distToScene(vec3(p.x + NORM_EPSILON, p.y, p.z));
+  //   float xMi = distToScene(vec3(p.x - NORM_EPSILON, p.y, p.z));
+  //   float yPl = distToScene(vec3(p.x, p.y + NORM_EPSILON, p.z));
+  //   float yMi = distToScene(vec3(p.x, p.y - NORM_EPSILON, p.z));
+  //   float zPl = distToScene(vec3(p.x, p.y, p.z + NORM_EPSILON));
+  //   float zMi = distToScene(vec3(p.x, p.y, p.z - NORM_EPSILON));
+  //   float xDiff = xPl - xMi;
+  //   float yDiff = yPl - yMi;
+  //   float zDiff = zPl - zMi;
+  //   return normalize(vec3(xDiff, yDiff, zDiff));
+  vec3 eps = vec3(0.001, 0.0, 0.0);
+  vec3 nor = vec3(distToScene(p + eps.xyy).x - distToScene(p - eps.xyy).x,
+                  distToScene(p + eps.yxy).x - distToScene(p - eps.yxy).x,
+                  distToScene(p + eps.yyx).x - distToScene(p - eps.yyx).x);
+  return normalize(nor);
 }
 
 TraceResult traceRay(Ray r) {
@@ -84,7 +92,7 @@ void main() {
 
   // vec3 camPos = vec3(4.0 * cos(camAngle), 0.0, 4.0 * sin(camAngle));
   vec3 camPos = vec3(3.0, 3.0, 3.0);
-  vec3 lookAt = vec3(0.0);
+  vec3 lookAt = vec3(0.5, 0.0, 0.0);
   float zoom = 1.0;
 
   Ray camRay = Ray(camPos, camRayDir(uv, camPos, lookAt, zoom));
@@ -94,7 +102,7 @@ void main() {
     vec3 normal = estimateNormal(res.pos);
     vec3 lightPos = vec3(2.0, 1.0, 1.0);
     float sDotN = dot(normal, normalize(lightPos - res.pos));
-    color = vec4(0.5 + 0.5 * normal, 1.0) * sDotN;
+    color = vec4(vec3(pow((res.dist - 3.0) / 3, 3)), 1.0) * sDotN;
   } else {
     color = vec4(0.0, 0.0, 0.0, 1.0);
   }
@@ -105,7 +113,7 @@ vec4 quatMul(vec4 a, vec4 b) {
               a.x * b.yzw + b.x * a.yzw + cross(a.yzw, b.yzw));
 }
 
-int iters = 20;
+int iters = 3;
 float bailout = 2.0;
 float power = 3;
 
